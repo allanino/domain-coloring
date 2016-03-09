@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html>
+  <meta charset="UTF-8">
+  <title>Domain coloring</title>
+
+  <script src="complex.min.js"></script>
+  <script src="polynomial.min.js"></script>
+  <style>
+  body {
+    background-color: #333333;
+    color: #eeeeee;
+  }
+
+  #controls {
+      margin-bottom: 8px;
+  }
+
+  </style>
+
+  <body>
+    <div id="controls">
+      <label>Polynomial: </label>
+      <input id="polynomial" type="text" value="z^2+1" onkeydown = "if (event.keyCode == 13) plot()">
+      <button type="button" class="myButton" onclick="plot()">Create</button>
+    </div>
+
+    <div id="container">
+      <canvas id="plot" width="820" height="820" ></canvas>
+    </div>
+
+  </body>
+
+  <script>
+  // Tell it we are going to deal with complex polynomials
+  Polynomial.setField("C");
+
+  var canvas = document.getElementById('plot');
+  var ctx = canvas.getContext('2d');
+
+  // Function to convert a 2D point into a HSL color.
+  // The hue encodes phase information, while saturation and lightness encodes absolute valute.
+  function color(x, y){
+    let abs = Math.sqrt(x*x+y*y);
+    let h = 360.0*(Math.PI + Math.atan2(x,y))/(2*Math.PI);
+    // let s = 100.0/(1.0 + (Math.ceil(abs) - abs)/5*abs);
+    let s = 100.0/(1.0 + 0.001*abs);
+    let l = 100.0 - 100.0/(1.0 + 0.5*abs);
+    return 'hsl(' + h + ',' + s + '%,' + l + '%)'
+  }
+
+  // Function to plot the polynomial specified in the textfield
+  function plot(){
+    try {
+      // Get polynomial string, convert z to x and remove spaces
+      let s = document.getElementById('polynomial').value.replace(/z/g, "x").replace(/ /g,'');
+      // Create a new polynomial object from the string
+      var p = new Polynomial(s);
+    }
+    catch(err) {
+     alert("Invalid input. Please, use only letter z for the variable and symbols ^, +, - and *.");
+     return
+   };
+
+    let width = 2;
+    let scale = 200;
+
+    let [xMin, xMax, yMin, yMax] = [-2,2,-2,2];
+
+    let offset = 2*scale;
+
+    let xStep = (xMax - xMin)/(2.0*scale);
+    let yStep = (yMax - yMin)/(2.0*scale);
+
+    for(let x = xMin; x <= xMax; x += xStep){
+      for(let y = yMin; y <= yMax; y += yStep){
+        let w = p.result(x + '+' + y + 'i');
+        let w_x = w.re;
+        let w_y =  w.im;
+        ctx.fillStyle = color(w_x, w_y);
+        ctx.fillRect(scale*x + offset - width/2, scale*y + offset - width/2, width, width);
+      }
+    }
+  }
+
+  // Create default plot
+  plot();
+  </script>
+</html>
