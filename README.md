@@ -3,6 +3,14 @@
 This is a Javascript + HTML application to render [domain coloring](https://en.wikipedia.org/wiki/Domain_coloring)
 images for complex polynomials.
 
+## Current limitations
+
+Below are some limitations we plan to overcome in the future:
+
+- Fixed canvas size
+- Fixed range from -2 to 2 in both axis
+- Broken in Android Chrome
+
 ## Mathematica notebook
 
 We also included a Mathematica [notebook](mathematica/DomainColoring.nb) with functions to render
