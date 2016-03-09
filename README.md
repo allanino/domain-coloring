@@ -7,7 +7,6 @@ images for complex polynomials.
 
 Below are some limitations we plan to overcome in the future:
 
-- Fixed canvas size
 - Fixed range from -2 to 2 in both axis
 - Broken in Android Chrome
 
