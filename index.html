@@ -53,38 +53,30 @@
     </div>
 
     <div class="right">
-      <h1>Domain coloring polynomials</h1>
+      <h1>Domain coloring</h1>
       <p>
         This is an implementation of the
         <a href="https://en.wikipedia.org/wiki/Domain_coloring">domain coloring technique</a>
         for complex polynomials visualization.
       </p>
-
       <p>
         In this technique, the value of a polynomial at point (x, y) is colored according to some rules.
-        You can see where it point is mapped, in this implementation, by comparing the image in the left
-        with the following reference image. Notice that the lightness increases alway from the origin:
+        You can see where each point is mapped, in this implementation, by comparing the image on the left
+        with the following reference image. Notice that the lightness increases away from the origin:
       </p>
-
       <canvas id="reference" width="410" height="410" ></canvas>
-
       <p>
         You are encouraged to draw your own polynomials to visualize how they transform the plane.
-      </p>
-
-      <p>
-        One nice thing to do is to observe the polynomials roots, which always have a black spot in
+        One nice thing to do is to observe the polynomial's roots, which always have a black spot in
         their neighborhood. You can also notice how double roots are different from single roots and
-        how the roots counts with multiplicity always sums up to the polynomial degree.
+        how counting the roots with their multiplicity always sums up to the polynomial's degree.
       </p>
-
       <h3>Limitations</h3>
-
-      Currently we have some limitations, the most striking of them being that our range is fixed from
-      -2 to 2 in both axis in all images. Also this may not work in a mobile devide right now.
-
+      <p>
+        Currently we have some limitations, the most striking of them being that our range is fixed from
+        -2 to 2 in both axis in all images. Also this may not work in a mobile devide right now.
+      </p>
     </div>
-
   </body>
 
   <script>
