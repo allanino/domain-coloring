@@ -99,7 +99,7 @@
   // The hue encodes phase information, while saturation and lightness encodes absolute valute.
   function color(x, y){
     let abs = Math.sqrt(x*x+y*y);
-    let h = 360.0*(Math.PI + Math.atan2(x,y))/(2*Math.PI);
+    let h = 360.0*(Math.PI + Math.atan2(x, y))/(2*Math.PI);
     // let s = 100.0/(1.0 + (Math.ceil(abs) - abs)/5*abs);
     let s = 100.0/(1.0 + 0.001*abs);
     let l = 100.0 - 100.0/(1.0 + 0.5*abs);
