@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html>
+  <meta charset="UTF-8">
+  <title>Domain coloring</title>
+
+  <script src="js/complex.min.js"></script>
+  <script src="js/polynomial.min.js"></script>
+  <script src="js/jquery.min.js"></script>
+
+  <style>
+  @import url(http://fonts.googleapis.com/css?family=Libre+Baskerville);
+
+  body {
+    background-color: #333333;
+    color: #eeeeee;
+    font-family: 'Libre Baskerville', sans-serif;
+  }
+
+  a {
+      color: #bbbbbb;
+  }
+
+  #controls {
+      margin-bottom: 8px;
+  }
+
+  .left {
+      float: left;
+      width: 48%;
+      margin-left: 2%;
+  }
+
+  .right {
+      margin-left: 52%;
+      padding-top: 0px;
+  }
+
+  #reference {
+      margin-left: 25%;
+  }
+
+  #ref-container {
+    position: relative;
+  }
+
+  #container {
+    position: relative;
+  }
+
+  .right-label {
+    margin-left: 16px;
+  }
+  </style>
+
+  <body>
+    <div class="left">
+      <div id="controls">
+        <label>Polinômio: </label>
+        <input id="polynomial" type="text" value="z^2+1" onkeydown = "if (event.keyCode == 13) plotMain()">
+        <button type="button" class="myButton" onclick="plotMain()">Criar</button>
+
+        <label class="right-label">Domínio: </label>
+        <select id="range">
+          <option value="2">[-2, 2] x [-2, 2]</option>
+          <option value="4">[-4, 4] x [-4, 4]</option>
+          <option value="6">[-6, 6] x [-6, 6]</option>
+          <option value="8">[-8, 8] x [-8, 8]</option>
+          <option value="10">[-10, 10] x [-10, 10]</option>
+        </select>
+      </div>
+
+      <div id="container">
+        <canvas id="plot" ></canvas>
+      </div>
+    </div>
+
+    <div class="right">
+      <h1>Colorização do domínio</h1>
+      <p>
+        Esta é uma implementação da técnica conhecida em inglês como
+        <a href="https://en.wikipedia.org/wiki/Domain_coloring">domain coloring</a>
+        para visualização de polinômios complexos.
+      </p>
+      <p>
+        Neste técnica, cada ponto <i>(x, y)</i> é colorido de acordo com o valor do polinômio neste ponto,
+        segundo algumas regras. Nesta implementação, podemos visualizar onde cada ponto do domínio é
+        mapeado pela comparação da imagem à esquerda com a imagem de referência a seguir:
+      </p>
+      <div id="ref-container">
+        <canvas id="reference" width="410" height="410" ></canvas>
+      </div>
+
+      <p>
+        O domínio selecionado aplica-se aos dois gráficos. Ao selectionar-se um domínio maior, vê-se
+        claramente que o brilho dos pontos da imagem de referência aumenta à medida que nos afastamos
+        da origem. Esta é uma das características do método e possui uma consequência interessante:
+        pontos mapeados próximos à origem são mais escuros, de modo que as raízes do polinômio visualizado
+        possuem uma mancha escura ao seu redor.
+      </p>
+
+      <p>
+        Encorajamos o leitor a desenhar seus próprios polinômios para visualizar como eles transformam
+        os pontos do plano. Algo interessante a se observar é como raízes duplas diferenciam-se de
+        raízes simples e como a contagem das raízes com suas multiplicidades sempre é igual ao grau
+        do polinômio, de acordo com o Teorema Fundamental da Álgebra.
+      </p>
+    </div>
+
+    <script>
+    // Tell it we are going to deal with complex polynomials
+    Polynomial.setField("C");
+
+    // Get canvas objetct for refence and main plot
+    var canvas = document.getElementById('plot');
+    var ctx = canvas.getContext('2d');
+
+    ctx.canvas.width  = window.innerWidth*0.45;
+    ctx.canvas.height = ctx.canvas.width;
+
+    var canvasRef = document.getElementById('reference');
+    var ctxRef = canvasRef.getContext('2d');
+
+    ctxRef.canvas.width  = window.innerWidth*0.25;
+    ctxRef.canvas.height = ctxRef.canvas.width;
+
+    // Specify the range of plot, which will be [-semiRange, semiRange] for both axis
+    var semiRange = 2;
+
+    // stepFactor is inversely proportional to resolution. Lesser values implies higher resolution at
+    // computational cost.
+    let stepFactor = 2;
+
+    // Function to convert a 2D point into a HSL color.
+    // The hue encodes phase information, while saturation and lightness encodes absolute valute.
+    function color(x, y){
+      let abs = Math.sqrt(x*x+y*y);
+      let h = 360.0*(Math.PI + Math.atan2(-y, x))/(2*Math.PI);
+      // let s = 100.0/(1.0 + (Math.ceil(abs) - abs)/5*abs);
+      let s = 100.0/(1.0 + 0.001*abs);
+      let l = 100.0 - 100.0/(1.0 + 0.5*abs);
+      return 'hsl(' + h + ',' + s + '%,' + l + '%)'
+    }
+
+    // Function to plot polynomial
+    function plot(context, polynomial){
+      try {
+        // Get polynomial string, convert z to x and remove spaces
+        let s = polynomial.replace(/z/g, "x").replace(/ /g,'');
+        // Create a new polynomial object from the string
+        var p = new Polynomial(s);
+      }
+      catch(err) {
+       alert("Entrada inválida. Por favor, utiliza apenas a letra z como variável e os símbolos ^, +, - e  *.");
+       return
+      };
+
+      let [xMin, xMax, yMin, yMax] = [-semiRange, semiRange, -semiRange, semiRange];
+
+      let width = 2*semiRange;
+      let scale = context.canvas.width/width;
+      let offset = context.canvas.width/2;
+
+      let xStep = stepFactor/scale;
+      let yStep = stepFactor/scale;
+
+      for(let x = xMin; x <= xMax; x += xStep){
+        for(let y = yMin; y <= yMax; y += yStep){
+          let w = p.result(x + '+' + y + 'i');
+          let w_x = w.re;
+          let w_y =  w.im;
+          context.fillStyle = color(w_x, w_y);
+          context.fillRect(scale*x + offset, scale*y + offset, width, width);
+        }
+      }
+    }
+
+    function overlay(context) {
+      // Darken canvas
+      context.fillStyle = "rgba(0, 0, 0, 0.75)";
+      context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+      context.font = "48px Baskerville";
+      context.fillStyle = "#aaaaaa";
+      context.textAlign = 'center';
+      context.fillText("Calculando...", context.canvas.width/2, context.canvas.height/2);
+    }
+
+    function plotMain(){
+      // Add loading overlay
+      overlay(ctx);
+      // To give overlay time to render, we need to set a timeout
+      setTimeout(function(){plot(ctx, document.getElementById('polynomial').value)}, 10);
+    }
+
+    function plotReference(){
+      // Add loading overlay
+      overlay(ctxRef);
+      // To give overlay time to render, we need to set a timeout
+      setTimeout(function(){plot(ctxRef, 'z')}, 10)
+    }
+
+    function plotAll(){
+      plotMain();
+      plotReference();
+    }
+
+    $('#range').click(function(){
+      semiRange = parseInt($(this).val());
+      plotAll();
+    });
+
+    $(document).ready(function(){
+      plotAll();
+    })
+  </script>
+  </body>
+</html>
